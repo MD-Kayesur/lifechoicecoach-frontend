@@ -21,25 +21,28 @@ export const Degrees = () => {
         );
     };
 
-    const { data: catalogData } = useGetDegreeCatalogQuery();
+    const { data: catalogData, isLoading } = useGetDegreeCatalogQuery();
 
     const mappedDegrees = useMemo(() => {
-        if (!catalogData?.success) return DEGREES;
+        if (isLoading) return [];
+        if (!catalogData?.success || !catalogData?.degree_catalog) return DEGREES;
 
         const allDegrees: any[] = [];
         catalogData.degree_catalog.degree_types.forEach(type => {
-            type.degrees.forEach(deg => {
-                allDegrees.push({
-                    id: deg.id,
-                    level: deg.degree_type,
-                    name: deg.name,
-                    mcs: deg.required_micro_credentials.map(mc => mc.name),
-                    mc_count: deg.mc_required,
-                    ects: deg.ects_required,
-                    eqf: deg.eqf_level,
-                    partner: deg.co_endorser === "-" ? null : deg.co_endorser
+            if (type.degrees && Array.isArray(type.degrees)) {
+                type.degrees.forEach(deg => {
+                    allDegrees.push({
+                        id: deg.id,
+                        level: deg.degree_type || type.title,
+                        name: deg.name,
+                        mcs: (deg.required_micro_credentials || []).map((mc: any) => mc.name),
+                        mc_count: deg.mc_required || (deg.required_micro_credentials?.length || 0),
+                        ects: deg.ects_required || 180,
+                        eqf: deg.eqf_level || 6,
+                        partner: (deg.co_endorser === "-" || !deg.co_endorser) ? null : deg.co_endorser
+                    });
                 });
-            });
+            }
         });
         return allDegrees;
     }, [catalogData]);
@@ -66,18 +69,54 @@ export const Degrees = () => {
         });
     }, [activeFilter, searchQuery]);
 
-    const groups = [
-        { id: 'Bachelor', label: 'Bachelor Degrees', items: filteredDegrees.filter(d => d.level === 'Bachelor') },
-        { id: 'Master', label: 'Master Degrees', items: filteredDegrees.filter(d => d.level === 'Master') },
-        { id: 'Doctorate', label: 'Doctorate Degrees', items: filteredDegrees.filter(d => d.level === 'Doctorate') },
-        { id: 'Cert', label: 'Brand Strategy Certifications', items: filteredCerts }
-    ];
+    const groups = useMemo(() => {
+        const baseGroups = (catalogData?.degree_catalog?.degree_types || []).map(type => ({
+            id: type.title,
+            label: `${type.title} Degrees`,
+            items: filteredDegrees.filter(d => d.level === type.title)
+        }));
+
+        // If no API data, fallback to defaults for consistency
+        if (baseGroups.length === 0) {
+            baseGroups.push(
+                { id: 'Bachelor', label: 'Bachelor Degrees', items: filteredDegrees.filter(d => d.level === 'Bachelor') },
+                { id: 'Master', label: 'Master Degrees', items: filteredDegrees.filter(d => d.level === 'Master') },
+                { id: 'Doctorate', label: 'Doctorate Degrees', items: filteredDegrees.filter(d => d.level === 'Doctorate') }
+            );
+        }
+
+        baseGroups.push({ id: 'Cert', label: 'Brand Strategy Certifications', items: filteredCerts });
+        return baseGroups;
+    }, [catalogData, filteredDegrees, filteredCerts]);
 
     const totalCount = mappedDegrees.length + CERTS.length;
-    const bachelorCount = mappedDegrees.filter(d => d.level === 'Bachelor').length;
-    const masterCount = mappedDegrees.filter(d => d.level === 'Master').length;
-    const doctorateCount = mappedDegrees.filter(d => d.level === 'Doctorate').length;
-    const certCount = CERTS.length;
+
+    const getFilterStyle = (id: string, isActive: boolean) => {
+        if (!isActive) return 'bg-white/5 border-white/12 text-[#94A3B8]';
+        
+        switch(id) {
+            case 'all': return 'bg-[#a02030] border-gold text-white';
+            case 'Bachelor': return 'bg-[#1E6B8C]/40 border-[#1E6B8C] text-white';
+            case 'Master': return 'bg-gold/30 border-gold text-[#cb2d39]';
+            case 'Doctorate': return 'bg-[#8a1a26]/40 border-gold text-[#FF8080]';
+            case 'Cert': return 'bg-[#4a1e6b]/40 border-[#9B59B6] text-[#C39BD3]';
+            default: return 'bg-gold/20 border-gold/50 text-gold';
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#070c14] flex flex-col items-center justify-center relative overflow-hidden font-outfit">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(203,45,57,0.05)_0%,transparent_70%)]"></div>
+                <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-16 h-16 border-4 border-gold/20 border-t-gold rounded-full animate-spin mb-6"></div>
+                    <div className="text-white/50 text-[13px] font-medium tracking-[3px] uppercase animate-pulse">
+                        Assembling Degree Pathways...
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div id="page-degrees" className="page active pt-[62px] min-h-screen bg-[#070c14] relative overflow-hidden font-outfit">
@@ -105,10 +144,10 @@ export const Degrees = () => {
                     </p>
                     <div className="hero-stats flex justify-center gap-10 flex-wrap mb-10">
                         {[
-                            { n: String(totalCount), l: 'Degree Programs' },
-                            { n: String(mappedDegrees.length), l: 'EIU-Paris Degrees' },
-                            { n: '3', l: 'Education Degrees' },
-                            { n: String(certCount), l: 'Brand Certifications' }
+                            { n: String(catalogData?.degree_catalog?.total_degrees || totalCount), l: 'Degree Programs' },
+                            { n: String(mappedDegrees.length), l: 'Academic Programs' },
+                            { n: String(mappedDegrees.filter(d => d.name.includes('Education') || d.name.includes('MEd')).length), l: 'Education Degrees' },
+                            { n: String(CERTS.length), l: 'Brand Certifications' }
                         ].map((stat, i) => (
                             <div key={i} className="hero-stat text-center">
                                 <div className="num font-mono text-[32px] font-extrabold text-gold">{stat.n}</div>
@@ -122,34 +161,34 @@ export const Degrees = () => {
                 <div className="filters-section px-10 pt-8 max-w-[1400px] mx-auto">
                     <div className="filters-row flex gap-2.5 flex-wrap items-center mb-4">
                         <button
-                            className={`filter-btn bg-white/5 border border-white/12 text-[#94A3B8] px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white ${activeFilter === 'all' ? 'bg-[#a02030] border-gold text-white' : ''}`}
+                            className={`filter-btn px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white border ${getFilterStyle('all', activeFilter === 'all')}`}
                             onClick={() => setActiveFilter('all')}
                         >
                             All ({totalCount})
                         </button>
+
+                        {(catalogData?.degree_catalog?.degree_types || [
+                            { title: 'Bachelor' },
+                            { title: 'Master' },
+                            { title: 'Doctorate' }
+                        ]).map((type: any) => {
+                            const count = mappedDegrees.filter(d => d.level === type.title).length;
+                            return (
+                                <button
+                                    key={type.title}
+                                    className={`filter-btn px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white border ${getFilterStyle(type.title, activeFilter === type.title)}`}
+                                    onClick={() => setActiveFilter(type.title)}
+                                >
+                                    {type.title} ({count})
+                                </button>
+                            );
+                        })}
+
                         <button
-                            className={`filter-btn bg-white/5 border border-white/12 text-[#94A3B8] px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white ${activeFilter === 'Bachelor' ? 'bg-[#1E6B8C]/40 border-[#1E6B8C] text-white' : ''}`}
-                            onClick={() => setActiveFilter('Bachelor')}
-                        >
-                            Bachelor ({bachelorCount})
-                        </button>
-                        <button
-                            className={`filter-btn bg-white/5 border border-white/12 text-[#94A3B8] px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white ${activeFilter === 'Master' ? 'bg-gold/30 border-gold text-[#cb2d39]' : ''}`}
-                            onClick={() => setActiveFilter('Master')}
-                        >
-                            Master ({masterCount})
-                        </button>
-                        <button
-                            className={`filter-btn bg-white/5 border border-white/12 text-[#94A3B8] px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white ${activeFilter === 'Doctorate' ? 'bg-[#8a1a26]/40 border-gold text-[#FF8080]' : ''}`}
-                            onClick={() => setActiveFilter('Doctorate')}
-                        >
-                            Doctorate ({doctorateCount})
-                        </button>
-                        <button
-                            className={`filter-btn bg-white/5 border border-white/12 text-[#94A3B8] px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white ${activeFilter === 'Cert' ? 'bg-[#4a1e6b]/40 border-[#9B59B6] text-[#C39BD3]' : ''}`}
+                            className={`filter-btn px-4.5 py-2 rounded-lg text-[13px] font-medium transition-all hover:bg-white/10 hover:text-white border ${getFilterStyle('Cert', activeFilter === 'Cert')}`}
                             onClick={() => setActiveFilter('Cert')}
                         >
-                            Certifications ({certCount})
+                            Certifications ({CERTS.length})
                         </button>
                         <div className="search-box flex-1 min-w-[220px] max-w-[360px]">
                             <input
