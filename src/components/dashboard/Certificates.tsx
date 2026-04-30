@@ -215,7 +215,7 @@ export const Certificates = () => {
                                             <ExternalLink size={14} className="text-white/20 group-hover:text-white/60 transition-colors" />
                                         </a>
 
-                                        <button 
+                                        {/* <button 
                                             onClick={() => {
                                                 const url = selectedCert?.certificate_file || '';
                                                 navigator.clipboard.writeText(url);
@@ -231,7 +231,7 @@ export const Certificates = () => {
                                                 <div className="text-white/40 text-[10px]">Direct link to verified certificate</div>
                                             </div>
                                             <div className="text-gold text-[10px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
-                                        </button>
+                                        </button> */}
                                     </div>
 
                                     <div className="pt-4 border-t border-white/5 text-center">
