@@ -4,7 +4,7 @@ import { useVerifyCertificateQuery, useGetCertificateTemplateQuery } from "@/red
 import { useGetLessonCompetenciesQuery, MicroCredential, DomainHierarchy } from "@/redux/features/lesson/lessonCompetenciesApi";
 import { useGetProfileQuery } from "@/redux/features/profile/profileApi";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import certPhoto from "@/assets/cirtificate/Untitled-2.png";
 import { Loader2, ShieldCheck, Download, CheckCircle2 } from "lucide-react";
@@ -43,6 +43,11 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
     const userName = firstLast || "Practitioner Name";
     const certRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // 2. Fetch Certificate Details
     const { data: apiResponse, isLoading: certLoading, isError } = useVerifyCertificateQuery({ certificate_number: id });
@@ -190,15 +195,19 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                         </div>
 
                         {/* QR Code */}
-                        <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] rounded-sm shadow-sm pointer-events-auto">
-                           <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[8vw] lg:max-h-[8vw]">
-                                <QRCodeSVG 
-                                    value={cert?.certificate_file || (typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : '')} 
-                                    size={1000}
-                                    style={{ width: '100%', height: '100%' }}
-                                    level="H"
-                                    includeMargin={false}
-                                />
+                        <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5%] rounded-sm shadow-sm pointer-events-auto w-[34%] lg:w-[22%] aspect-square overflow-hidden flex items-center justify-center">
+                            <div className="w-full h-full">
+                                {isMounted ? (
+                                    <QRCodeSVG 
+                                        value={cert?.certificate_file || (typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : '')} 
+                                        size={1000}
+                                        style={{ width: '100%', height: '100%' }}
+                                        level="H"
+                                        includeMargin={false}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-white" />
+                                )}
                             </div>
                             {/* Hidden canvas for PDF export */}
                             <div style={{ display: 'none' }}>

@@ -21,9 +21,9 @@ export default function LandingPage() {
             <CredentialDomains />
             <IkonSteps />
             <QualityAssurance />
-            <div className="max-w-[1400px] mx-auto px-10 py-24">
+            {/* <div className="max-w-[1400px] mx-auto px-10 py-24">
                 <EQFLevels />
-            </div>
+            </div> */}
             {/* <Features /> */}
             {/* <HowItWorks /> */}
         </main>
