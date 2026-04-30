@@ -230,7 +230,7 @@ export const Certificate = () => {
 
                                 {/* QR Code Container */}
                                 <div className="absolute top-[49.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] shadow-sm pointer-events-auto">
-                                    <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[10vw] lg:max-h-[10vw]">
+                                    <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[8vw] lg:max-h-[8vw]">
                                         <QRCodeSVG 
                                             value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''} 
                                             size={1000}

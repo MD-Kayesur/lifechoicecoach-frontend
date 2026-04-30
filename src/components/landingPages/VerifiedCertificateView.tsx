@@ -191,9 +191,9 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
 
                         {/* QR Code */}
                         <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] rounded-sm shadow-sm pointer-events-auto">
-                            <div className="w-[11vw] h-[11vw] max-w-[130px] max-h-[130px]">
+                           <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[8vw] lg:max-h-[8vw]">
                                 <QRCodeSVG 
-                                    value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : ''} 
+                                    value={cert?.certificate_file || (typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : '')} 
                                     size={1000}
                                     style={{ width: '100%', height: '100%' }}
                                     level="H"
@@ -204,7 +204,7 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                             <div style={{ display: 'none' }}>
                                 <QRCodeCanvas
                                     id="qr-code-canvas"
-                                    value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : ''}
+                                    value={cert?.certificate_file || (typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : '')}
                                     size={500}
                                     level="H"
                                 />
