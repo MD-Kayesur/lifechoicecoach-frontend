@@ -78,6 +78,16 @@ export const certificateApi = baseApi.injectEndpoints({
             }),
             providesTags: ["CertificateTemplate"],
         }),
+
+        // Upload certificate file
+        uploadCertificateFile: builder.mutation<{ success: boolean; message: string; certificate: Certificate; error: boolean }, { certificate_number: string; formData: FormData }>({
+            query: ({ certificate_number, formData }) => ({
+                url: `/progress/user/certificates/${certificate_number}/upload-file/`,
+                method: "PATCH",
+                body: formData,
+            }),
+            invalidatesTags: ["Certificate"],
+        }),
     }),
 });
 
@@ -86,4 +96,5 @@ export const {
     useVerifyCertificateQuery,
     useGetCertificateByIdQuery,
     useGetCertificateTemplateQuery,
+    useUploadCertificateFileMutation,
 } = certificateApi;

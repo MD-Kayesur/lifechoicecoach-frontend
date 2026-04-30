@@ -9,7 +9,7 @@ import jsPDF from "jspdf";
 import { useRef, useMemo } from "react";
 import { useGetLessonCompetenciesQuery, MicroCredential, DomainHierarchy } from "@/redux/features/lesson/lessonCompetenciesApi";
 import { useGetProfileQuery } from "@/redux/features/profile/profileApi";
-import { useGetCertificateTemplateQuery } from "@/redux/features/progress/certificateApi";
+import { useGetCertificateTemplateQuery, useUploadCertificateFileMutation } from "@/redux/features/progress/certificateApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { Download } from "lucide-react";
 import { toPng } from "html-to-image";
@@ -104,6 +104,8 @@ export const Certificate = () => {
 
     const certRef = useRef<HTMLDivElement>(null);
 
+    const [uploadCertificateFile] = useUploadCertificateFileMutation();
+
     const handleDownload = async () => {
         if (!certRef.current) {
             alert("Certificate template not ready yet.");
@@ -137,6 +139,25 @@ export const Certificate = () => {
             const yOffset = (pdfHeight - finalHeight) / 2;
 
             pdf.addImage(dataUrl, "PNG", xOffset, yOffset, finalWidth, finalHeight);
+
+            // Upload the generated PDF to the server
+            if (certData?.certificate_number) {
+                const pdfBlob = pdf.output('blob');
+                const formData = new FormData();
+                formData.append('certificate_file', pdfBlob, `IKON-Certificate-${certData.certificate_number}.pdf`);
+                formData.append('ects_earned', (certData.ects_earned || 10).toString());
+                formData.append('is_public', 'true');
+
+                try {
+                    await uploadCertificateFile({
+                        certificate_number: certData.certificate_number,
+                        formData
+                    }).unwrap();
+                    console.log("Certificate file uploaded to server successfully");
+                } catch (uploadError) {
+                    console.error("Failed to upload certificate file:", uploadError);
+                }
+            }
 
             pdf.save(`IKON-Skills-Certificate-${mc.name.replace(/\s+/g, '-')}.pdf`);
         } catch (error) {
