@@ -120,6 +120,11 @@ export const Certificate = () => {
                 cacheBust: true,
                 pixelRatio: 2,
                 quality: 1,
+                style: {
+                    border: 'none',
+                    borderRadius: '0',
+                    boxShadow: 'none',
+                }
             });
 
             // Use a temporary instance to get image properties
@@ -184,7 +189,7 @@ export const Certificate = () => {
                     </div>
 
                     {/* Certificate Card with Dynamic Overlays */}
-                    <div ref={certRef} className="relative group rounded-none">
+                    <div ref={certRef} className="relative group rounded-none border-none shadow-none">
                         <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto rounded-none" />
                         
                         {/* Dynamic Overlays */}

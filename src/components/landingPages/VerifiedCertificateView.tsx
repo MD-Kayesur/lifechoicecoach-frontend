@@ -79,6 +79,11 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                 cacheBust: true,
                 pixelRatio: 2,
                 quality: 1,
+                style: {
+                    border: 'none',
+                    borderRadius: '0',
+                    boxShadow: 'none',
+                }
             });
 
             const tempPdf = new jsPDF();
@@ -146,7 +151,7 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
         <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-6 md:p-12">
             <div className="w-full h-full max-w-[1100px] animate-in fade-in zoom-in-95 duration-1000">
                 {/* Certificate Preview Only */}
-                <div ref={certRef} className="relative group rounded-none">
+                <div ref={certRef} className="relative group rounded-none border-none shadow-none">
                     <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto rounded-none" />
                     
                     {/* Dynamic Overlays */}
