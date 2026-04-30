@@ -117,7 +117,7 @@ export const Certificates = () => {
                                         <p className="text-white/60 text-sm">Congratulations! Your IKON SKILLS™ Micro-Credential is ready to be shared with your professional network.</p>
                                     </div>
 
-                                    <div className="relative overflow-hidden shadow-lg aspect-[1.414/1] bg-white group">
+                                    <div className="relative overflow-hidden rounded-none aspect-[1.414/1] bg-white group">
                                         <Image 
                                             src={certPhoto} 
                                             alt="Certificate Preview" 
