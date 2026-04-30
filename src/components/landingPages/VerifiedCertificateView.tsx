@@ -146,8 +146,8 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
         <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-6 md:p-12">
             <div className="w-full h-full max-w-[1100px] animate-in fade-in zoom-in-95 duration-1000">
                 {/* Certificate Preview Only */}
-                <div ref={certRef} className="relative group overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-gold/30 bg-white/5">
-                    <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto" />
+                <div ref={certRef} className="relative group rounded-none">
+                    <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto rounded-none" />
                     
                     {/* Dynamic Overlays */}
                     <div className="absolute inset-0 pointer-events-none">

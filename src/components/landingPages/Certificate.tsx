@@ -184,8 +184,8 @@ export const Certificate = () => {
                     </div>
 
                     {/* Certificate Card with Dynamic Overlays */}
-                    <div ref={certRef} className="relative group overflow-hidden border border-gold/20 shadow-2xl">
-                        <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto" />
+                    <div ref={certRef} className="relative group rounded-none">
+                        <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto rounded-none" />
                         
                         {/* Dynamic Overlays */}
                         {certData && (

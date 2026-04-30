@@ -61,8 +61,9 @@ export const Certificates = () => {
                                         <ShieldCheck className="w-3 h-3 text-gold" />
                                         <span className="text-[9px] font-bold text-gold uppercase tracking-widest font-mono">Official EIU-Paris Credential</span>
                                     </div>
-                                    <h3 className="text-white text-[16px] font-bold mb-1 leading-tight group-hover:text-gold transition-colors">{cert.micro_credential_name || (cert as any).credential_name}</h3>
-                                    <div className="text-white/40 text-[11px] mb-4">Issued on {new Date(cert.issued_at || (cert as any).issue_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                                     <h3 className="text-white text-[16px] font-bold mb-0.5 leading-tight group-hover:text-gold transition-colors">{cert.micro_credential_name || (cert as any).credential_name}</h3>
+                                    <div className="text-gold/60 text-[10px] font-medium mb-1 tracking-wide">{cert.domain_name}</div>
+                                    <div className="text-white/40 text-[11px] mb-4 italic">Issued on {new Date(cert.issued_at || (cert as any).issue_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
                                     
                                     <div className="flex flex-wrap gap-3">
                                         <button 
@@ -77,16 +78,13 @@ export const Certificates = () => {
                                         >
                                             <Share2 className="w-3 h-3" /> Share
                                         </button>
-                                        {/* <button className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border border-white/10">
-                                            <ExternalLink className="w-3 h-3" /> Verify
-                                        </button> */}
                                     </div>
                                 </div>
                             </div>
                             
                             <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-[9px] font-mono text-white/30 uppercase tracking-[1px]">
                                 <span>Certificate ID: {cert.certificate_number}</span>
-                                <span className={cert.is_public !== false ? 'text-green-500/60' : 'text-red-500/60'}>{cert.is_public !== false ? 'Status: Valid' : 'Status: Invalid'}</span>
+                                <span className={cert.is_valid !== false ? 'text-green-500/60' : 'text-red-500/60'}>{cert.is_valid !== false ? 'Status: Valid' : 'Status: Invalid'}</span>
                             </div>
                         </div>
                     ))
@@ -119,7 +117,7 @@ export const Certificates = () => {
                                         <p className="text-white/60 text-sm">Congratulations! Your IKON SKILLS™ Micro-Credential is ready to be shared with your professional network.</p>
                                     </div>
 
-                                    <div className="relative rounded-xl overflow-hidden border border-gold/20 shadow-lg aspect-[1.414/1] bg-white group">
+                                    <div className="relative overflow-hidden shadow-lg aspect-[1.414/1] bg-white group">
                                         <Image 
                                             src={certPhoto} 
                                             alt="Certificate Preview" 
@@ -131,7 +129,7 @@ export const Certificates = () => {
                                             <div className="absolute inset-0 flex flex-col items-center pointer-events-none" style={{ paddingTop: '15.5%' }}>
                                                 {/* Domain Name Placeholder - using a generic domain if not available */}
                                                 <div className="text-[6px] font-serif font-bold text-[#5B5655]/70 uppercase tracking-[0.5px] mb-[1%]">
-                                                    Official IKON Skills Domain
+                                                    {selectedCert.domain_name || "Official IKON Skills Domain"}
                                                 </div>
                                                 <div className="text-[12px] font-serif font-bold text-[#5B5655]">
                                                     {selectedCert.user_name || (selectedCert as any).recipient_name}
