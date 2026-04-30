@@ -223,6 +223,13 @@ export const Certificate = () => {
                                         />
                                     </div>
                                 </div>
+                                {/* TWBF Logo Overlay - Only show for Domain 10 (Brand Leadership) */}
+                                {!(Number(mc.cat) === 10 || category.name?.toLowerCase().includes("brand leadership")) && (
+                                    <div 
+                                        className="absolute right-[3%] top-[12.5%] w-[18%] h-[18%] bg-white z-[5]"
+                                        style={{ backgroundColor: '#FFFFFF' }}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>
