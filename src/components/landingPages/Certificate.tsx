@@ -120,25 +120,20 @@ export const Certificate = () => {
                 quality: 1,
             });
 
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4',
-            });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-
-            const imgProps = pdf.getImageProperties(dataUrl);
+            // Use a temporary instance to get image properties
+            const tempPdf = new jsPDF();
+            const imgProps = tempPdf.getImageProperties(dataUrl);
             const imgWidth = imgProps.width;
             const imgHeight = imgProps.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const finalWidth = imgWidth * ratio;
-            const finalHeight = imgHeight * ratio;
-            const xOffset = (pdfWidth - finalWidth) / 2;
-            const yOffset = (pdfHeight - finalHeight) / 2;
 
-            pdf.addImage(dataUrl, "PNG", xOffset, yOffset, finalWidth, finalHeight);
+            // Create the final PDF with exact image dimensions to remove white space
+            const pdf = new jsPDF({
+                orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+                unit: 'px',
+                format: [imgWidth, imgHeight]
+            });
+
+            pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
 
             // Upload the generated PDF to the server
             if (certData?.certificate_number) {
@@ -185,7 +180,7 @@ export const Certificate = () => {
                     </div>
 
                     {/* Certificate Card with Dynamic Overlays */}
-                    <div ref={certRef} className="relative group overflow-hidden rounded-xl border border-gold/20 shadow-2xl">
+                    <div ref={certRef} className="relative group overflow-hidden border border-gold/20 shadow-2xl">
                         <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto" />
                         
                         {/* Dynamic Overlays */}
