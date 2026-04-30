@@ -186,7 +186,7 @@ export const Certificates = () => {
 
                                     <div className="grid grid-cols-1 gap-3">
                                         <a 
-                                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${selectedCert?.certificate_number}` : '')}`}
+                                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(selectedCert?.certificate_file || '')}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-4 p-4 rounded-xl bg-[#0077b5]/10 border border-[#0077b5]/30 hover:bg-[#0077b5]/20 transition-all group"
@@ -202,7 +202,7 @@ export const Certificates = () => {
                                         </a>
 
                                         <a 
-                                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${selectedCert?.certificate_number}` : '')}`}
+                                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(selectedCert?.certificate_file || '')}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-4 p-4 rounded-xl bg-[#1877f2]/10 border border-[#1877f2]/30 hover:bg-[#1877f2]/20 transition-all group"
@@ -219,11 +219,9 @@ export const Certificates = () => {
 
                                         <button 
                                             onClick={() => {
-                                                const url = `${window.location.origin}/verify-certificate/${selectedCert?.certificate_number}`;
+                                                const url = selectedCert?.certificate_file || '';
                                                 navigator.clipboard.writeText(url);
-                                                // Using alert as fallback if sonner toast isn't available, 
-                                                // but usually sonner is setup in layout
-                                                alert("Link copied to clipboard!");
+                                                alert("Certificate PDF link copied to clipboard!");
                                             }}
                                             className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group w-full text-left"
                                         >

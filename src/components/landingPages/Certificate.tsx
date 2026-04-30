@@ -172,7 +172,7 @@ export const Certificate = () => {
                             <div className="absolute inset-0 pointer-events-none">
                                 {/* Domain Name */}
                                 <div 
-                                    className="absolute left-1/2 -translate-x-1/2 top-[15.5%] text-[1.6vw] lg:text-[20px] font-serif font-bold text-[#5B5655] tracking-[2px] whitespace-nowrap"
+                                    className="absolute left-1/2 -translate-x-1/2 top-[15.5%] text-[1.9vw] lg:text-[22px] font-serif font-bold text-[#5B5655] tracking-[2px] whitespace-nowrap"
                                 >
                                     {certData.domain_name || mc1?.domain_name || category.name || "Official IKON Skills Domain"}
                                 </div>
@@ -193,19 +193,19 @@ export const Certificate = () => {
 
                                 {/* Bottom Info Row (Issued Date & Certificate ID) */}
                                 <div 
-                                    className="absolute left-7/12 -translate-x-1/2 lg:top-[39.5%] top-[39.9%] w-full flex justify-center gap-[16%] text-[1.2vw] lg:text-[14px] font-mono text-[#5b5655]"
+                                    className="absolute  left-[61%] lg:left-8/13 -translate-x-1/2 lg:top-[39.5%] top-[39.5%] w-full flex justify-center gap-[16%] lg:gap-[16%] text-[1.6vw] lg:text-[14px] font-mono text-[#5b5655]"
                                 >
                                     <div className="flex gap-2">
                                         <span>{certData.issued_at ? new Date(certData.issued_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '07 March 2026'}</span>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 ">
                                         <span>{certData.certificate_number || `IKS-${mc.id}-2026-4201-XKPM7`}</span>
                                     </div>
                                 </div>
 
                                 {/* QR Code Container */}
-                                <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] shadow-sm pointer-events-auto">
-                                    <div className="w-[11vw] h-[11vw] max-w-[130px] max-h-[130px]">
+                                <div className="absolute top-[49.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] shadow-sm pointer-events-auto">
+                                    <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[10vw] lg:max-h-[10vw]">
                                         <QRCodeSVG 
                                             value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''} 
                                             size={1000}
