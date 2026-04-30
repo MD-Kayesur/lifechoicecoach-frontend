@@ -48,11 +48,11 @@ const LinkedInIcon = () => (
 
 const providers = [
     { name: "google", icon: <GoogleIcon />, color: "#4285F4" },
-    { name: "github", icon: <GithubIcon />, color: "#333" },
-    { name: "facebook", icon: <FacebookIcon />, color: "#1877F2" },
-    { name: "twitter", icon: <TwitterIcon />, color: "#1DA1F2" },
-    { name: "linkedin", icon: <LinkedInIcon />, color: "#0A66C2" },
-    { name: "apple", icon: <Apple size={18} />, color: "#fff" },
+    // { name: "github", icon: <GithubIcon />, color: "#333" },
+    // { name: "facebook", icon: <FacebookIcon />, color: "#1877F2" },
+    // { name: "twitter", icon: <TwitterIcon />, color: "#1DA1F2" },
+    // { name: "linkedin", icon: <LinkedInIcon />, color: "#0A66C2" },
+    // { name: "apple", icon: <Apple size={18} />, color: "#fff" },
 ];
 
 export const SocialLogin = () => {

@@ -2,13 +2,17 @@ import { baseApi } from "@/redux/hooks/baseApi";
 
 export interface EarnedCredential {
     id: number;
-    name: string;
-    earned_date: string;
-    certificate_id: string;
-    badge_url: string;
-    ects: number;
-    level: number;
-    domain?: string;
+    micro_credential_id: number;
+    micro_credential_name: string;
+    domain_name: string;
+    ects_earned: number;
+    eqf_level: string;
+    certificate_number: string;
+    verification_url: string;
+    issued_at: string;
+    badge_url: string | null;
+    certificate_file: string | null;
+    badge_count: number;
 }
 
 export interface ECTSAccumulation {

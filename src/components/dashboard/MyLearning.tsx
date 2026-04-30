@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { 
     useGetCompletedCredentialsQuery, 
     useGetInProgressMCsQuery, 
@@ -8,6 +9,7 @@ import {
 import { Loader2 } from "lucide-react";
 
 export const MyLearning = () => {
+    const router = useRouter();
     const { data: completedData, isLoading: isCompletedLoading } = useGetCompletedCredentialsQuery();
     console.log("completedData",completedData);
     const { data: inProgressData, isLoading: isInProgressLoading } = useGetInProgressMCsQuery();
@@ -49,7 +51,11 @@ export const MyLearning = () => {
             <div className="space-y-4">
                 {enrolledData?.micro_credentials && enrolledData.micro_credentials.length > 0 ? (
                     enrolledData.micro_credentials.map((mc, i) => (
-                        <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-gold/30">
+                        <div 
+                            key={i} 
+                            // onClick={() => router.push(`/sample-mc?id=${mc.id}`)}
+                            className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-gold/30 "
+                        >
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center text-2xl group-hover:bg-gold/20 transition-all">📖</div>
                                 <div className="flex-1">

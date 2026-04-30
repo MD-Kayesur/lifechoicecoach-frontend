@@ -4,12 +4,13 @@ import { useVerifyCertificateQuery, useGetCertificateTemplateQuery } from "@/red
 import { useGetLessonCompetenciesQuery, MicroCredential, DomainHierarchy } from "@/redux/features/lesson/lessonCompetenciesApi";
 import { useGetProfileQuery } from "@/redux/features/profile/profileApi";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { useMemo } from "react";
+import { useRef, useMemo, useState } from "react";
 import Image from "next/image";
 import certPhoto from "@/assets/cirtificate/Untitled-2.png";
 import { Loader2, ShieldCheck, Download, CheckCircle2 } from "lucide-react";
 import { QRCodeSVG, QRCodeCanvas } from "qrcode.react";
 import jsPDF from "jspdf";
+import { toPng } from "html-to-image";
 
 const getImageUrl = (path: string | null | undefined) => {
     if (!path) return "";
@@ -40,6 +41,8 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
     const { data: profileData } = useGetProfileQuery();
     const firstLast = `${profileData?.profile?.first_name || ""} ${profileData?.profile?.last_name || ""}`.trim();
     const userName = firstLast || "Practitioner Name";
+    const certRef = useRef<HTMLDivElement>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     // 2. Fetch Certificate Details
     const { data: apiResponse, isLoading: certLoading, isError } = useVerifyCertificateQuery({ certificate_number: id });
@@ -67,77 +70,41 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
     const displayIssueDate = cert?.issued_at || cert?.issue_date ? new Date(cert?.issued_at || cert?.issue_date).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }) : "07 March 2026";
     const displayCertificateNumber = cert?.certificate_number || cert?.id || id;
 
-    const handleDownload = () => {
-        if (!cert) return;
+    const handleDownload = async () => {
+        if (!certRef.current) return;
 
-        const img = new (window as any).Image();
-        // The image is proxied through Next.js, so it is treated as same-origin
-        img.src = certificateImageSrc;
-
-        img.onload = () => {
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
+        setIsDownloading(true);
+        try {
+            const dataUrl = await toPng(certRef.current, { 
+                cacheBust: true,
+                pixelRatio: 2,
+                quality: 1,
+                style: {
+                    border: 'none',
+                    borderRadius: '0',
+                    boxShadow: 'none',
+                }
             });
 
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const tempPdf = new jsPDF();
+            const imgProps = tempPdf.getImageProperties(dataUrl);
+            const imgWidth = imgProps.width;
+            const imgHeight = imgProps.height;
 
-            const imgWidth = img.width;
-            const imgHeight = img.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const finalWidth = imgWidth * ratio;
-            const finalHeight = imgHeight * ratio;
-            const xOffset = (pdfWidth - finalWidth) / 2;
-            const yOffset = (pdfHeight - finalHeight) / 2;
+            const pdf = new jsPDF({
+                orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+                unit: 'px',
+                format: [imgWidth, imgHeight]
+            });
 
-            pdf.addImage(img, "JPEG", xOffset, yOffset, finalWidth, finalHeight);
-
-            // 1. Domain Name
-            pdf.setFont("serif", "bold");
-            pdf.setFontSize(13);
-            pdf.setTextColor(91, 86, 85);
-            pdf.text(displayDomainName, pdfWidth / 2, 52, { align: "center" });
-
-            // 2. Recipient Name
-            pdf.setFont("serif", "bold");
-            pdf.setFontSize(28);
-            pdf.setTextColor(91, 86, 85);
-            pdf.text(displayUserName, pdfWidth / 2, 75, { align: "center" });
-
-            // 3. Micro-Credential Name
-            pdf.setFont("serif", "normal");
-            pdf.setFontSize(22);
-            pdf.setTextColor(91, 86, 85);
-            pdf.text(displayCredentialName, pdfWidth / 2, 102, { align: "center" });
-
-            // 4. Issue Date
-            pdf.setFont("monospace", "normal");
-            pdf.setFontSize(10);
-            pdf.setTextColor(91, 86, 85);
-            pdf.text(displayIssueDate, 65, 124.5);
-
-            // 5. Certificate ID
-            pdf.text(displayCertificateNumber, 122, 124.5);
-
-            // 6. QR Code
-            const qrCanvas = document.getElementById("qr-code-canvas") as HTMLCanvasElement;
-            if (qrCanvas) {
-                const qrImage = qrCanvas.toDataURL("image/png");
-                // Position it centered between the date and ID, or just centered
-                // Based on UI: top-[42%] left-[50%]
-                // 42% of 297mm is ~124.7mm. We'll use 124.5 to align with text center.
-                const qrSize = 30;
-                pdf.addImage(qrImage, "PNG", (pdfWidth - qrSize) / 2, 124.5 - (qrSize / 2), qrSize, qrSize);
-            }
-
-            pdf.save(`Verified-Certificate-${cert?.certificate_number || id}.pdf`);
-        };
-
-        img.onerror = () => {
-            alert("Failed to load certificate template image.");
-        };
+            pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.save(`Verified-Certificate-${displayCertificateNumber}.pdf`);
+        } catch (error) {
+            console.error("Download failed:", error);
+            alert("Failed to download certificate. Please try again.");
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     if (isLoading) {
@@ -182,30 +149,38 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
 
     return (
         <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-6 md:p-12">
-            <div className="w-full max-w-[1100px] animate-in fade-in zoom-in-95 duration-1000">
+            <div className="w-full h-full max-w-[1100px] animate-in fade-in zoom-in-95 duration-1000">
                 {/* Certificate Preview Only */}
-                <div className="relative group rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-gold/30 bg-white/5">
-                    <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto" />
+                <div ref={certRef} className="relative group rounded-none border-none shadow-none">
+                    <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto rounded-none" />
                     
                     {/* Dynamic Overlays */}
-                    <div className="absolute inset-0 flex flex-col items-center mt-20 pointer-events-none mt-62"  >
+                    <div className="absolute inset-0 pointer-events-none">
                         {/* Domain Name */}
-                        <div className="text-[1.2vw] lg:text-[18px] font-serif font-bold text-[#5B5655]/70   tracking-[2px]  ">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[15.5%] text-[1.6vw] lg:text-[18px] font-serif font-bold text-[#5B5655]/70 tracking-[2px] whitespace-nowrap"
+                        >
                             {displayDomainName}
                         </div>
                         
                         {/* Recipient Name */}
-                        <div className="text-[3vw]  mt-20 lg:text-[42px] font-serif font-bold text-[#5B5655]">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[28.5%] text-[3.5vw] lg:text-[42px] font-serif font-bold text-[#5B5655] whitespace-nowrap"
+                        >
                             {displayUserName}
                         </div>
                         
                         {/* Credential Name */}
-                        <div className="text-[2.2vw] lg:text-[34px] font-serif mt-20 text-[#5B5655]  ">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[44%] text-[3vw] lg:text-[34px] font-serif text-[#5B5655] whitespace-nowrap"
+                        >
                             {displayCredentialName}
                         </div>
 
                         {/* Bottom Info Row */}
-                        <div className="absolute left-10 top-97 w-full flex justify-center gap-[16%] text-[1vw] lg:text-[16px] font-mono text-[#5B5655]">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[62.5%] w-full flex justify-center gap-[19%] text-[1.2vw] lg:text-[16px] font-mono text-[#5B5655]"
+                        >
                             <div className="flex gap-2">
                                 <span>{displayIssueDate}</span>
                             </div>
@@ -215,13 +190,16 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                         </div>
 
                         {/* QR Code */}
-                        <div className="absolute top-[42%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[4px] rounded-sm shadow-sm pointer-events-auto">
-                            <QRCodeSVG 
-                                value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : ''} 
-                                size={130}
-                                level="H"
-                                includeMargin={false}
-                            />
+                        <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] rounded-sm shadow-sm pointer-events-auto">
+                            <div className="w-[11vw] h-[11vw] max-w-[130px] max-h-[130px]">
+                                <QRCodeSVG 
+                                    value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : ''} 
+                                    size={1000}
+                                    style={{ width: '100%', height: '100%' }}
+                                    level="H"
+                                    includeMargin={false}
+                                />
+                            </div>
                             {/* Hidden canvas for PDF export */}
                             <div style={{ display: 'none' }}>
                                 <QRCodeCanvas
@@ -237,10 +215,15 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                     {/* Subtle Download Hover Button */}
                     <button 
                         onClick={handleDownload}
-                        className="absolute bottom-6 right-6 bg-gold/90 hover:bg-gold text-white p-3 rounded-full shadow-xl transition-all opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0"
+                        disabled={isDownloading}
+                        className={`absolute bottom-6 right-6 bg-gold/90 hover:bg-gold text-white p-3 rounded-full shadow-xl transition-all opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 flex items-center justify-center ${isDownloading ? 'opacity-100' : ''}`}
                         title="Download PDF"
                     >
-                        <Download size={24} />
+                        {isDownloading ? (
+                            <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            <Download size={24} />
+                        )}
                     </button>
                 </div>
 

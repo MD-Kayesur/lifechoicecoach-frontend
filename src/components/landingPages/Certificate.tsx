@@ -6,10 +6,10 @@ import Image from "next/image";
 import certPhoto from "@/assets/cirtificate/Untitled-2.png";
 import ikonLogo from "@/assets/images/ikon_logo.png";
 import jsPDF from "jspdf";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { useGetLessonCompetenciesQuery, MicroCredential, DomainHierarchy } from "@/redux/features/lesson/lessonCompetenciesApi";
 import { useGetProfileQuery } from "@/redux/features/profile/profileApi";
-import { useGetCertificateTemplateQuery } from "@/redux/features/progress/certificateApi";
+import { useGetCertificateTemplateQuery, useUploadCertificateFileMutation } from "@/redux/features/progress/certificateApi";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { Download } from "lucide-react";
 import { toPng } from "html-to-image";
@@ -39,6 +39,7 @@ const getImageUrl = (path: string | null | undefined) => {
 export const Certificate = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [isDownloading, setIsDownloading] = useState(false);
     const id = searchParams.get("id");
      
     // Fetch User Profile
@@ -104,44 +105,68 @@ export const Certificate = () => {
 
     const certRef = useRef<HTMLDivElement>(null);
 
+    const [uploadCertificateFile] = useUploadCertificateFileMutation();
+
     const handleDownload = async () => {
         if (!certRef.current) {
             alert("Certificate template not ready yet.");
             return;
         }
 
+        setIsDownloading(true);
         try {
             // Give the browser a moment to ensure images are fully rendered
             const dataUrl = await toPng(certRef.current, { 
                 cacheBust: true,
                 pixelRatio: 2,
                 quality: 1,
+                style: {
+                    border: 'none',
+                    borderRadius: '0',
+                    boxShadow: 'none',
+                }
             });
 
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4',
-            });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-
-            const imgProps = pdf.getImageProperties(dataUrl);
+            // Use a temporary instance to get image properties
+            const tempPdf = new jsPDF();
+            const imgProps = tempPdf.getImageProperties(dataUrl);
             const imgWidth = imgProps.width;
             const imgHeight = imgProps.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const finalWidth = imgWidth * ratio;
-            const finalHeight = imgHeight * ratio;
-            const xOffset = (pdfWidth - finalWidth) / 2;
-            const yOffset = (pdfHeight - finalHeight) / 2;
 
-            pdf.addImage(dataUrl, "PNG", xOffset, yOffset, finalWidth, finalHeight);
+            // Create the final PDF with exact image dimensions to remove white space
+            const pdf = new jsPDF({
+                orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+                unit: 'px',
+                format: [imgWidth, imgHeight]
+            });
+
+            pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+
+            // Upload the generated PDF to the server
+            if (certData?.certificate_number) {
+                const pdfBlob = pdf.output('blob');
+                const formData = new FormData();
+                formData.append('certificate_file', pdfBlob, `IKON-Certificate-${certData.certificate_number}.pdf`);
+                formData.append('ects_earned', (certData.ects_earned || 10).toString());
+                formData.append('is_public', 'true');
+
+                try {
+                    await uploadCertificateFile({
+                        certificate_number: certData.certificate_number,
+                        formData
+                    }).unwrap();
+                    console.log("Certificate file uploaded to server successfully");
+                } catch (uploadError) {
+                    console.error("Failed to upload certificate file:", uploadError);
+                }
+            }
 
             pdf.save(`IKON-Skills-Certificate-${mc.name.replace(/\s+/g, '-')}.pdf`);
         } catch (error) {
             console.error("Download failed:", error);
             alert("Failed to download the certificate. Please try again.");
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -164,49 +189,74 @@ export const Certificate = () => {
                     </div>
 
                     {/* Certificate Card with Dynamic Overlays */}
-                    <div ref={certRef} className="relative group overflow-hidden rounded-xl border border-gold/20 shadow-2xl">
-                        <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto" />
+                    <div ref={certRef} className="relative group rounded-none border-none shadow-none">
+                        <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto rounded-none" />
                         
                         {/* Dynamic Overlays */}
-                        <div className="absolute inset-0 flex flex-col items-center mt-20 pointer-events-none mt-62">
-                            <div className="text-[1.2vw] lg:text-[18px] font-serif font-bold text-[#5B5655]/70 tracking-[2px]">
-                                {certData?.domain_name || mc1?.domain_name || category.name || "Official IKON Skills Domain"}
-                            </div>
-
-                            <div className="text-[3vw] mt-20 lg:text-[42px] font-serif font-bold text-[#5b5655]">
-                                {userName}
-                            </div>
-                            
-                            <div className="text-[2.2vw] lg:text-[34px] font-serif mt-20 text-[#5b5655]">
-                                {certData?.micro_credential_name || mc1?.micro_credential || mc.name}
-                            </div>
-
-                            <div className="absolute left-10 top-97 w-full flex justify-center gap-[16%] text-[1vw] lg:text-[16px] font-mono text-[#5b5655]">
-                                <div className="flex gap-2">
-                                    <span>{certData?.issued_at ? new Date(certData.issued_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '07 March 2026'}</span>
+                        {certData && (
+                            <div className="absolute inset-0 pointer-events-none">
+                                {/* Domain Name */}
+                                <div 
+                                    className="absolute left-1/2 -translate-x-1/2 top-[15.5%] text-[1.9vw] lg:text-[22px] font-serif font-bold text-[#5B5655] tracking-[2px] whitespace-nowrap"
+                                >
+                                    {certData.domain_name || mc1?.domain_name || category.name || "Official IKON Skills Domain"}
                                 </div>
-                                <div className="flex gap-2">
-                                    <span>{certData?.certificate_number || `IKS-${mc.id}-2026-4201-XKPM7`}</span>
-                                </div>
-                            </div>
 
-                            <div className="absolute top-[42%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[4px] rounded-sm shadow-sm pointer-events-auto">
-                                <QRCodeSVG 
-                                    value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData?.certificate_number || id}` : ''} 
-                                    size={150}
-                                    level="H"
-                                    includeMargin={false}
-                                />
-                                <div style={{ display: 'none' }}>
-                                    <QRCodeCanvas
-                                        id="qr-code-canvas-sample"
-                                        value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData?.certificate_number || id}` : ''}
-                                        size={500}
-                                        level="H"
+                                {/* User Name */}
+                                <div 
+                                    className="absolute left-1/2 -translate-x-1/2 top-[23%] lg:top-[21.5%] text-[3.5vw] lg:text-[42px] font-serif font-bold text-[#5b5655] whitespace-nowrap"
+                                >
+                                    {userName}
+                                </div>
+                                
+                                {/* Micro-Credential Name */}
+                                <div 
+                                    className="absolute left-1/2 -translate-x-1/2 top-[32%] lg:top-[31%] text-[3vw] lg:text-[36px] font-serif text-[#5b5655] whitespace-nowrap"
+                                >
+                                    {certData.micro_credential_name || mc1?.micro_credential || mc.name}
+                                </div>
+
+                                {/* Bottom Info Row (Issued Date & Certificate ID) */}
+                                <div 
+                                    className="absolute  left-[61%] lg:left-8/13 -translate-x-1/2 lg:top-[39.5%] top-[39.5%] w-full flex justify-center gap-[16%] lg:gap-[16%] text-[1.6vw] lg:text-[14px] font-mono text-[#5b5655]"
+                                >
+                                    <div className="flex gap-2">
+                                        <span>{certData.issued_at ? new Date(certData.issued_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '07 March 2026'}</span>
+                                    </div>
+                                    <div className="flex gap-2 ">
+                                        <span>{certData.certificate_number || `IKS-${mc.id}-2026-4201-XKPM7`}</span>
+                                    </div>
+                                </div>
+
+                                {/* QR Code Container */}
+                                <div className="absolute top-[49.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] shadow-sm pointer-events-auto">
+                                    <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[10vw] lg:max-h-[10vw]">
+                                        <QRCodeSVG 
+                                            value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''} 
+                                            size={1000}
+                                            style={{ width: '100%', height: '100%' }}
+                                            level="H"
+                                            includeMargin={false}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'none' }}>
+                                        <QRCodeCanvas
+                                            id="qr-code-canvas-sample"
+                                            value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''}
+                                            size={500}
+                                            level="H"
+                                        />
+                                    </div>
+                                </div>
+                                {/* TWBF Logo Overlay - Only show for Domain 10 (Brand Leadership) */}
+                                {!(Number(mc.cat) === 10 || category.name?.toLowerCase().includes("brand leadership")) && (
+                                    <div 
+                                        className="absolute right-[3%] top-[12.5%] w-[18%] h-[18%] bg-white z-[5]"
+                                        style={{ backgroundColor: '#FFFFFF' }}
                                     />
-                                </div>
+                                )}
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
@@ -251,9 +301,24 @@ export const Certificate = () => {
                         </div>
                     </div>
 
-                    <button onClick={handleDownload} className="btn-dl w-full bg-gold text-white font-bold text-[13.5px] py-3 rounded-xl shadow-[0_4px_0_#9a7e3a] hover:bg-gold2 hover:translate-y-[2px] hover:shadow-[0_2px_0_#9a7e3a] active:shadow-none active:translate-y-[4px] transition-all mb-3 flex items-center justify-center gap-2">
-                        <Download size={18} /> Download Certificate (PDF)
-                    </button>
+                    {certDataStr && (
+                        <button 
+                            onClick={handleDownload} 
+                            disabled={isDownloading}
+                            className={`btn-dl w-full bg-gold text-white font-bold text-[13.5px] py-3 rounded-xl shadow-[0_4px_0_#9a7e3a] hover:bg-gold2 hover:translate-y-[2px] hover:shadow-[0_2px_0_#9a7e3a] active:shadow-none active:translate-y-[4px] transition-all mb-3 flex items-center justify-center gap-2 ${isDownloading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        >
+                            {isDownloading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                    Generating PDF...
+                                </>
+                            ) : (
+                                <>
+                                    <Download size={18} /> Download Certificate (PDF)
+                                </>
+                            )}
+                        </button>
+                    )}
 
                     <div className="note bg-[#F9F5EE] border border-gold/15 rounded-2xl p-4">
                         <div className="text-[12px] font-bold text-[#0B1F3A] mb-2">What this certificate proves</div>

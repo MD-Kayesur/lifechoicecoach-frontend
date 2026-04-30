@@ -1,9 +1,11 @@
 "use client";
-
+ 
+import { useRouter } from "next/navigation";
 import { useGetDegreeProgressListQuery } from "@/redux/features/progress/degreeProgressApi";
 import { Loader2, Award, BookOpen, TrendingUp } from "lucide-react";
 
 export const DegreeProgress = () => {
+    const router = useRouter();
     const { data, isLoading, isError } = useGetDegreeProgressListQuery();
     const progressList = data?.degree_progress || [];
 
@@ -50,7 +52,7 @@ export const DegreeProgress = () => {
 
                             <div className="relative z-10 mb-6">
                                 <div className="flex justify-between items-center mb-1.5 text-[12px] text-white/70 font-mono">
-                                    <span>{progress.progress_percentage}% Mastery</span>
+                                    <span>{progress.progress_percentage.toFixed(2)}% Mastery</span>
                                     <span className="text-gold2 font-bold">{progress.mc_completed}/{progress.total_mc_required} Micro-Credentials</span>
                                 </div>
                                 <div className="bg-white/10 rounded-full h-[8px] overflow-hidden">
@@ -69,16 +71,17 @@ export const DegreeProgress = () => {
                                 </div>
                             </div>
 
-                            <div className="relative z-10 pt-4 border-t border-white/5 flex gap-3">
-                                <button className="bg-gold hover:bg-gold2 text-white text-[11px] font-bold px-4 py-2 rounded-lg shadow-lg transition-colors">
+                            {/* <div className="relative z-10 pt-4 border-t border-white/5 flex gap-3">
+                                <button 
+                                    onClick={() => router.push('/dashboard?tab=My Learning')}
+                                    className="bg-gold hover:bg-gold2 text-white text-[11px] font-bold px-6 py-2 rounded-lg shadow-lg transition-colors cursor-pointer"
+                                >
                                     {progress.is_completed ? "View Final Degree" : "Resume Coursework"}
                                 </button>
-                                <button className="bg-white/5 text-white/50 hover:text-white text-[11px] font-bold px-4 py-2 rounded-lg border border-white/10 transition-colors">
-                                    Study Planner
-                                </button>
-                            </div>
+                            </div> */}
                         </div>
                     ))}
+
                 </div>
             ) : (
                 <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl p-12 text-center animate-in fade-in duration-700">

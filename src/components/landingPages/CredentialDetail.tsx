@@ -314,11 +314,11 @@ export const CredentialDetail = () => {
 
                         {canAccess ? (
                             <button 
-                                onClick={() => router.push('/dashboard?tab=My Learning')} 
+                                // onClick={() => router.push('/dashboard?tab=My Learning')} 
                                 className="w-full bg-[#4ade80]/20 border border-[#4ade80]/50 text-[#4ade80] font-bold text-[13.5px] py-3 rounded-xl hover:bg-[#4ade80]/30 transition-all mb-3 flex items-center justify-center gap-2"
                             >
                                 <BookOpen size={18} />
-                                Already Enrolled · Resume Learning
+                                Already Enrolled · Resume Learning and achieve the certificate.
                             </button>
                         ) : (
                             <button 
