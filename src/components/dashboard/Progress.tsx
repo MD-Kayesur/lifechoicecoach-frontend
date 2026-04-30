@@ -1,9 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useGetInProgressMCsQuery } from "@/redux/features/practitioner/PractitionerManagementApi";
 import { Loader2, TrendingUp, BookOpen, ChevronRight } from "lucide-react";
 
 export const Progress = () => {
+    const router = useRouter();
     const { data: inProgressData, isLoading } = useGetInProgressMCsQuery();
     const inProgress = inProgressData?.in_progress || [];
 
@@ -73,7 +75,10 @@ export const Progress = () => {
                                             <div className="text-white text-[12px] font-bold font-mono">{new Date(mc.enrolled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
                                         </div>
                                         <div className="flex items-center justify-end">
-                                            <button className="text-gold2 text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-2 hover:text-white transition-colors group/btn">
+                                            <button 
+                                                onClick={() => router.push(`/sample-mc?id=${mc.micro_credential_id}`)}
+                                                className="text-gold2 text-[10px] cursor-pointer font-bold uppercase tracking-[2px] flex items-center gap-2 hover:text-white transition-colors group/btn"
+                                            >
                                                 {mc.status === 'not_started' ? 'Start' : 'Continue'}
                                                 <span className="w-5 h-5 rounded-lg bg-gold/10 flex items-center justify-center group-hover/btn:bg-gold group-hover/btn:text-white transition-all">→</span>
                                             </button>
