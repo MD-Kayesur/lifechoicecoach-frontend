@@ -6,7 +6,7 @@ import Image from "next/image";
 import certPhoto from "@/assets/cirtificate/Untitled-2.png";
 import ikonLogo from "@/assets/images/ikon_logo.png";
 import jsPDF from "jspdf";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { useGetLessonCompetenciesQuery, MicroCredential, DomainHierarchy } from "@/redux/features/lesson/lessonCompetenciesApi";
 import { useGetProfileQuery } from "@/redux/features/profile/profileApi";
 import { useGetCertificateTemplateQuery, useUploadCertificateFileMutation } from "@/redux/features/progress/certificateApi";
@@ -39,6 +39,7 @@ const getImageUrl = (path: string | null | undefined) => {
 export const Certificate = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [isDownloading, setIsDownloading] = useState(false);
     const id = searchParams.get("id");
      
     // Fetch User Profile
@@ -112,6 +113,7 @@ export const Certificate = () => {
             return;
         }
 
+        setIsDownloading(true);
         try {
             // Give the browser a moment to ensure images are fully rendered
             const dataUrl = await toPng(certRef.current, { 
@@ -158,6 +160,8 @@ export const Certificate = () => {
         } catch (error) {
             console.error("Download failed:", error);
             alert("Failed to download the certificate. Please try again.");
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -292,8 +296,21 @@ export const Certificate = () => {
                         </div>
                     </div>
 
-                    <button onClick={handleDownload} className="btn-dl w-full bg-gold text-white font-bold text-[13.5px] py-3 rounded-xl shadow-[0_4px_0_#9a7e3a] hover:bg-gold2 hover:translate-y-[2px] hover:shadow-[0_2px_0_#9a7e3a] active:shadow-none active:translate-y-[4px] transition-all mb-3 flex items-center justify-center gap-2">
-                        <Download size={18} /> Download Certificate (PDF)
+                    <button 
+                        onClick={handleDownload} 
+                        disabled={isDownloading}
+                        className={`btn-dl w-full bg-gold text-white font-bold text-[13.5px] py-3 rounded-xl shadow-[0_4px_0_#9a7e3a] hover:bg-gold2 hover:translate-y-[2px] hover:shadow-[0_2px_0_#9a7e3a] active:shadow-none active:translate-y-[4px] transition-all mb-3 flex items-center justify-center gap-2 ${isDownloading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        {isDownloading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                Generating PDF...
+                            </>
+                        ) : (
+                            <>
+                                <Download size={18} /> Download Certificate (PDF)
+                            </>
+                        )}
                     </button>
 
                     <div className="note bg-[#F9F5EE] border border-gold/15 rounded-2xl p-4">
