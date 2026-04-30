@@ -21,6 +21,7 @@ export const MyCredentials = () => {
     }
 
     const earnedCredentials = earnedData?.credentials || [];
+    console.log("earnedCredentials", earnedCredentials);
     const enrolledCredentials = enrolledData?.micro_credentials || [];
 
     return (
@@ -93,7 +94,7 @@ export const MyCredentials = () => {
                                         <div className="text-white/30 text-[9px] font-mono uppercase">Enrolled: {new Date(mc.enrolled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                                         <button 
                                             onClick={() => router.push(`/sample-mc?id=${mc.micro_credential_id}`)}
-                                            className="text-gold2 text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-2 hover:text-white transition-colors group/btn"
+                                            className="text-gold2 cursor-pointer text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-2 hover:text-white transition-colors group/btn"
                                         >
                                             {isNotStarted ? 'Start Learning' : 'Continue Course'}
                                             <span className="w-5 h-5 rounded-lg bg-gold/10 flex items-center justify-center group-hover/btn:bg-gold group-hover/btn:text-white transition-all">→</span>
@@ -124,13 +125,46 @@ export const MyCredentials = () => {
                                 <div className="ec-ic text-[32px] mb-3">
                                     {cred.badge_url ? <img src={cred.badge_url} className="w-12 h-12 mx-auto" alt="Badge" /> : "🏅"}
                                 </div>
-                                <div className="text-white text-[15px] font-bold leading-tight mb-2 group-hover:text-gold transition-colors">{cred.name}</div>
-                                <div className="text-[10px] text-white/40 font-mono font-bold tracking-widest uppercase mb-4">{cred.domain || 'Verified Credential'}</div>
-                                <div className="text-gold3 text-[11px] font-mono font-bold bg-gold/10 px-3 py-1 rounded-full mb-4 inline-block">{cred.ects} ECTS · EQF {cred.level}</div>
+                                <div className="space-y-4 mb-6 text-left">
+                                    <div>
+                                        <div className="text-white/30 text-[9px] font-mono uppercase tracking-wider mb-1">Domain Name</div>
+                                        <div className="text-gold2 text-[12px] font-bold uppercase tracking-wide">{cred.domain_name || 'Verified Credential'}</div>
+                                    </div>
+                                    
+                                    <div>
+                                        <div className="text-white/30 text-[9px] font-mono uppercase tracking-wider mb-1">Credential Name</div>
+                                        <div className="text-white text-[16px] font-bold leading-tight group-hover:text-gold transition-colors">{cred.micro_credential_name}</div>
+                                    </div>
+
+                                    <div className="flex justify-between items-end">
+                                        <div>
+                                            <div className="text-white/30 text-[9px] font-mono uppercase tracking-wider mb-1">Issued On</div>
+                                            <div className="text-white/60 text-[11px] font-mono">{new Date(cred.issued_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-white/30 text-[9px] uppercase font-bold mb-1 tracking-wider">Credits</div>
+                                            <div className="text-gold3 text-[11px] font-mono font-bold bg-gold/10 px-3 py-0.5 rounded-full inline-block">{cred.ects_earned} ECTS · {cred.eqf_level}</div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="flex gap-2 justify-center mt-auto border-t border-white/5 pt-4">
-                                    <button className="text-[10px] font-bold text-white/50 hover:text-white transition-colors">Certificate →</button>
+                                    <button 
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            const certData = encodeURIComponent(JSON.stringify(cred));
+                                            router.push(`/certificate?id=${cred.micro_credential_id}&certData=${certData}`); 
+                                        }}
+                                        className="text-[10px] font-bold text-white/50 hover:text-white transition-colors cursor-pointer"
+                                    >
+                                        Certificate →
+                                    </button>
                                     <span className="text-white/20">|</span>
-                                    <button className="text-[10px] font-bold text-white/50 hover:text-white transition-colors">Verify →</button>
+                                    {/* <button 
+                                        onClick={(e) => { e.stopPropagation(); window.open(cred.verification_url, '_blank'); }}
+                                        className="text-[10px] font-bold text-white/50 hover:text-white transition-colors cursor-pointer"
+                                    >
+                                        Verify →
+                                    </button> */}
                                 </div>
                             </div>
                         ))

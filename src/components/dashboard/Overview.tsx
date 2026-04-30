@@ -82,7 +82,7 @@ export const Overview = () => {
                 </div>
             </section>
 
-            {/* {lastEarned && (
+            {lastEarned && (
                 <section>
                     <div className="text-[14.5px] font-bold text-white mb-3 tracking-wide">Last Earned Credential</div>
                     <div className="bg-gradient-to-br from-[#0B1F3A] to-[#142E55] border border-gold/40 rounded-2xl p-6 relative overflow-hidden group">
@@ -91,17 +91,25 @@ export const Overview = () => {
                             <div className="text-[48px]">{lastEarned.badge_url ? <img src={lastEarned.badge_url} className="w-16 h-16" alt="Badge" /> : '🏅'}</div>
                             <div>
                                 <div className="text-gold text-[10px] font-mono font-bold uppercase tracking-[1.5px] mb-1">Latest Awarded</div>
-                                <div className="text-white text-[22px] font-bold font-serif mb-1 leading-tight">{lastEarned.name}</div>
-                                <div className="text-white/60 text-[13px] mb-4">{lastEarned.ects} ECTS · EQF Level {lastEarned.level} · Verified by EIU-Paris</div>
+                                <div className="text-white text-[22px] font-bold font-serif mb-1 leading-tight">{lastEarned.micro_credential_name}</div>
+                                <div className="text-white/60 text-[13px] mb-4">{lastEarned.ects_earned} ECTS · {lastEarned.eqf_level} · Verified by EIU-Paris</div>
                                 <div className="flex gap-3">
-                                    <button className="bg-gold text-white text-[11px] font-bold px-4 py-1.5 rounded-lg">Share Certificate</button>
-                                    <button className="bg-white/10 text-white/80 text-[11px] font-bold px-4 py-1.5 rounded-lg border border-white/10">Verification ID: {lastEarned.certificate_id || 'N/A'}</button>
+                                    <button 
+                                        onClick={() => {
+                                            const certData = encodeURIComponent(JSON.stringify(lastEarned));
+                                            router.push(`/certificate?id=${lastEarned.micro_credential_id}&certData=${certData}`);
+                                        }}
+                                        className="bg-gold text-white text-[11px] font-bold px-4 py-1.5 rounded-lg cursor-pointer"
+                                    >
+                                        Share Certificate
+                                    </button>
+                                    <button className="bg-white/10 text-white/80 text-[11px] font-bold px-4 py-1.5 rounded-lg border border-white/10 cursor-pointer text-center">ID: {lastEarned.certificate_number}</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
-            )} */}
+            )}
         </div>
     );
 };
