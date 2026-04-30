@@ -154,17 +154,10 @@ export const MyCredentials = () => {
                                             const certData = encodeURIComponent(JSON.stringify(cred));
                                             router.push(`/certificate?id=${cred.micro_credential_id}&certData=${certData}`); 
                                         }}
-                                        className="text-[10px] font-bold text-white/50 hover:text-white transition-colors cursor-pointer"
+                                        className="bg-gold hover:bg-gold2 text-white text-[10px] font-bold px-6 py-2.5 rounded-xl shadow-lg transition-all cursor-pointer transform hover:scale-105 active:scale-95"
                                     >
-                                        Certificate →
+                                        View Certificate →
                                     </button>
-                                    <span className="text-white/20">|</span>
-                                    {/* <button 
-                                        onClick={(e) => { e.stopPropagation(); window.open(cred.verification_url, '_blank'); }}
-                                        className="text-[10px] font-bold text-white/50 hover:text-white transition-colors cursor-pointer"
-                                    >
-                                        Verify →
-                                    </button> */}
                                 </div>
                             </div>
                         ))
