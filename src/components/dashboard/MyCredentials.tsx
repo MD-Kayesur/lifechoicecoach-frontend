@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { 
     useGetEarnedCredentialsQuery, 
     useGetEnrolledCredentialsWithStateQuery 
@@ -7,6 +8,7 @@ import {
 import { Loader2, BookOpen, Award } from "lucide-react";
 
 export const MyCredentials = () => {
+    const router = useRouter();
     const { data: earnedData, isLoading: isEarnedLoading } = useGetEarnedCredentialsQuery();
     const { data: enrolledData, isLoading: isEnrolledLoading } = useGetEnrolledCredentialsWithStateQuery();
 
@@ -89,7 +91,10 @@ export const MyCredentials = () => {
 
                                     <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
                                         <div className="text-white/30 text-[9px] font-mono uppercase">Enrolled: {new Date(mc.enrolled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                                        <button className="text-gold2 text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-2 hover:text-white transition-colors group/btn">
+                                        <button 
+                                            onClick={() => router.push(`/sample-mc?id=${mc.micro_credential_id}`)}
+                                            className="text-gold2 text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-2 hover:text-white transition-colors group/btn"
+                                        >
                                             {isNotStarted ? 'Start Learning' : 'Continue Course'}
                                             <span className="w-5 h-5 rounded-lg bg-gold/10 flex items-center justify-center group-hover/btn:bg-gold group-hover/btn:text-white transition-all">→</span>
                                         </button>

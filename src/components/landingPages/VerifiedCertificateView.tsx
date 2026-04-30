@@ -188,24 +188,32 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                     <img src={certificateImageSrc} alt="Certificate Template" className="w-full h-auto" />
                     
                     {/* Dynamic Overlays */}
-                    <div className="absolute inset-0 flex flex-col items-center mt-20 pointer-events-none mt-62"  >
+                    <div className="absolute inset-0 pointer-events-none">
                         {/* Domain Name */}
-                        <div className="text-[1.2vw] lg:text-[18px] font-serif font-bold text-[#5B5655]/70   tracking-[2px]  ">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[15.5%] text-[1.6vw] lg:text-[18px] font-serif font-bold text-[#5B5655]/70 tracking-[2px] whitespace-nowrap"
+                        >
                             {displayDomainName}
                         </div>
                         
                         {/* Recipient Name */}
-                        <div className="text-[3vw]  mt-20 lg:text-[42px] font-serif font-bold text-[#5B5655]">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[28.5%] text-[3.5vw] lg:text-[42px] font-serif font-bold text-[#5B5655] whitespace-nowrap"
+                        >
                             {displayUserName}
                         </div>
                         
                         {/* Credential Name */}
-                        <div className="text-[2.2vw] lg:text-[34px] font-serif mt-20 text-[#5B5655]  ">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[44%] text-[3vw] lg:text-[34px] font-serif text-[#5B5655] whitespace-nowrap"
+                        >
                             {displayCredentialName}
                         </div>
 
                         {/* Bottom Info Row */}
-                        <div className="absolute left-24 top-92 w-full flex justify-center gap-[19%] text-[1vw] lg:text-[16px] font-mono text-[#5B5655]">
+                        <div 
+                            className="absolute left-1/2 -translate-x-1/2 top-[62.5%] w-full flex justify-center gap-[19%] text-[1.2vw] lg:text-[16px] font-mono text-[#5B5655]"
+                        >
                             <div className="flex gap-2">
                                 <span>{displayIssueDate}</span>
                             </div>
@@ -215,13 +223,16 @@ export const VerifiedCertificateView = ({ id }: VerifiedCertificateViewProps) =>
                         </div>
 
                         {/* QR Code */}
-                        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[4px] rounded-sm shadow-sm pointer-events-auto">
-                            <QRCodeSVG 
-                                value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : ''} 
-                                size={130}
-                                level="H"
-                                includeMargin={false}
-                            />
+                        <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] rounded-sm shadow-sm pointer-events-auto">
+                            <div className="w-[11vw] h-[11vw] max-w-[130px] max-h-[130px]">
+                                <QRCodeSVG 
+                                    value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${id}` : ''} 
+                                    size={1000}
+                                    style={{ width: '100%', height: '100%' }}
+                                    level="H"
+                                    includeMargin={false}
+                                />
+                            </div>
                             {/* Hidden canvas for PDF export */}
                             <div style={{ display: 'none' }}>
                                 <QRCodeCanvas

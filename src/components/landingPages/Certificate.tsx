@@ -169,20 +169,32 @@ export const Certificate = () => {
                         
                         {/* Dynamic Overlays */}
                         {certData && (
-                            <div className="absolute inset-0 flex flex-col items-center mt-40 pointer-events-none">
-                                <div className="text-[1.2vw] lg:text-[20px] font-serif font-bold    text-[#5B5655] tracking-[2px]">
+                            <div className="absolute inset-0 pointer-events-none">
+                                {/* Domain Name */}
+                                <div 
+                                    className="absolute left-1/2 -translate-x-1/2 top-[15.5%] text-[1.6vw] lg:text-[20px] font-serif font-bold text-[#5B5655] tracking-[2px] whitespace-nowrap"
+                                >
                                     {certData.domain_name || mc1?.domain_name || category.name || "Official IKON Skills Domain"}
                                 </div>
 
-                                <div className="text-[3vw] mt-10 lg:text-[42px] font-serif font-bold text-[#5b5655]">
+                                {/* User Name */}
+                                <div 
+                                    className="absolute left-1/2 -translate-x-1/2 top-[23%] lg:top-[21.5%] text-[3.5vw] lg:text-[42px] font-serif font-bold text-[#5b5655] whitespace-nowrap"
+                                >
                                     {userName}
                                 </div>
                                 
-                                <div className="text-[2.2vw] lg:text-[36px] font-serif mt-8 text-[#5b5655]">
+                                {/* Micro-Credential Name */}
+                                <div 
+                                    className="absolute left-1/2 -translate-x-1/2 top-[32%] lg:top-[31%] text-[3vw] lg:text-[36px] font-serif text-[#5b5655] whitespace-nowrap"
+                                >
                                     {certData.micro_credential_name || mc1?.micro_credential || mc.name}
                                 </div>
 
-                                <div className="absolute left-22 top-63.5 w-full flex justify-center gap-[16%] text-[1vw] lg:text-[14px] font-mono text-[#5b5655]">
+                                {/* Bottom Info Row (Issued Date & Certificate ID) */}
+                                <div 
+                                    className="absolute left-7/12 -translate-x-1/2 lg:top-[39.5%] top-[39.9%] w-full flex justify-center gap-[16%] text-[1.2vw] lg:text-[14px] font-mono text-[#5b5655]"
+                                >
                                     <div className="flex gap-2">
                                         <span>{certData.issued_at ? new Date(certData.issued_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '07 March 2026'}</span>
                                     </div>
@@ -191,13 +203,17 @@ export const Certificate = () => {
                                     </div>
                                 </div>
 
-                                <div className="absolute top-[40.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[4px]  shadow-sm pointer-events-auto">
-                                    <QRCodeSVG 
-                                        value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''} 
-                                        size={130}
-                                        level="H"
-                                        includeMargin={false}
-                                    />
+                                {/* QR Code Container */}
+                                <div className="absolute top-[75.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] shadow-sm pointer-events-auto">
+                                    <div className="w-[11vw] h-[11vw] max-w-[130px] max-h-[130px]">
+                                        <QRCodeSVG 
+                                            value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''} 
+                                            size={1000}
+                                            style={{ width: '100%', height: '100%' }}
+                                            level="H"
+                                            includeMargin={false}
+                                        />
+                                    </div>
                                     <div style={{ display: 'none' }}>
                                         <QRCodeCanvas
                                             id="qr-code-canvas-sample"

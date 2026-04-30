@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { 
     useGetDashboardOverviewQuery, 
     useGetInProgressMCsQuery, 
@@ -9,11 +10,12 @@ import {
 import { Loader2, Award, GraduationCap, BookOpen, CheckCircle } from "lucide-react";
 
 export const Overview = () => {
+    const router = useRouter();
     const { data: overviewData, isLoading: isOverviewLoading } = useGetDashboardOverviewQuery();
     const { data: inProgressData, isLoading: isInProgressLoading } = useGetInProgressMCsQuery();
     const { data: ectsData, isLoading: isEctsLoading } = useGetECTSAccumulationQuery();
     const { data: earnedData, isLoading: isEarnedLoading } = useGetEarnedCredentialsQuery();
-console.log("earnedData",earnedData);
+
     if (isOverviewLoading || isInProgressLoading || isEctsLoading || isEarnedLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -58,7 +60,11 @@ console.log("earnedData",earnedData);
                 <div className="space-y-2">
                     {inProgress.length > 0 ? (
                         inProgress.map((prog, i) => (
-                            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 transition-all hover:border-gold/50 cursor-pointer flex justify-between items-center gap-4 group">
+                            <div 
+                                key={i} 
+                                onClick={() => router.push(`/sample-mc?id=${prog.micro_credential_id}`)}
+                                className="bg-white/5 border border-white/10 rounded-xl p-4 transition-all hover:border-gold/50 cursor-pointer flex justify-between items-center gap-4 group"
+                            >
                                 <div className="flex-1">
                                     <div className="text-[14px] font-bold text-white mb-1 group-hover:text-gold transition-colors">{prog.micro_credential_name}</div>
                                     <div className="text-[10.5px] text-white/45 font-mono mb-2 uppercase tracking-wide">{prog.domain_name || 'Curriculum'}</div>
