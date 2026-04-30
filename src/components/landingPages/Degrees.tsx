@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { DEGREES, CERTS } from "@/lib/data";
 import { useGetDegreeCatalogQuery } from "@/redux/features/degree/degreePathwaysApi";
 
@@ -8,6 +9,11 @@ export const Degrees = () => {
     const [activeFilter, setActiveFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedDegrees, setExpandedDegrees] = useState<number[]>([]);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const toggleDegree = (id: number) => {
         setExpandedDegrees(prev =>
@@ -210,50 +216,68 @@ export const Degrees = () => {
                                             <svg className={`w-4 h-4 transition-transform duration-300 ${expandedDegrees.includes(deg.id) ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
                                         </div>
 
-                                        {expandedDegrees.includes(deg.id) && (
-                                            <div className="mc-list absolute top-[calc(100%+12px)] left-0 right-0 z-[100] p-5 bg-[#070c14]/98 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_30px_70px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200 origin-top">
-                                                <div className="mc-header flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] uppercase tracking-[2px] font-bold text-gold">Required Path</span>
-                                                        <span className="text-[9px] text-[#64748B]">Complete all units to graduate</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[11px] font-mono text-white bg-white/5 px-2 py-0.5 rounded border border-white/10">{deg.mcs.length} MCs</span>
+                                        {expandedDegrees.includes(deg.id) && mounted && createPortal(
+                                            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+                                                {/* Backdrop */}
+                                                <div 
+                                                    className="absolute inset-0 bg-[#040812]/90 backdrop-blur-md animate-in fade-in duration-300"
+                                                    onClick={(e) => { e.stopPropagation(); toggleDegree(deg.id); }}
+                                                ></div>
+                                                
+                                                {/* Modal Content */}
+                                                <div className="relative w-full max-w-[560px] max-h-[90vh] bg-[#070c14] border border-white/15 rounded-[28px] shadow-[0_0_100px_rgba(196,136,14,0.15)] overflow-hidden animate-in zoom-in-95 fade-in duration-300 flex flex-col">
+                                                    {/* Modal Header */}
+                                                    <div className="p-6 sm:p-8 border-b border-white/10 bg-white/5 flex items-center justify-between">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] uppercase tracking-[3px] font-bold text-gold mb-1">Micro-Credential Syllabus</span>
+                                                            <h3 className="text-white font-serif font-bold text-xl sm:text-2xl leading-tight line-clamp-2">
+                                                                {deg.name}
+                                                            </h3>
+                                                        </div>
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); toggleDegree(deg.id); }}
-                                                            className="text-[#64748B] hover:text-white transition-colors"
+                                                            className="text-white/30 hover:text-white transition-colors p-2"
                                                         >
-                                                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Modal Body - Scrollable */}
+                                                    <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
+                                                        <div className="mb-6 flex items-center justify-between text-[11px] font-mono">
+                                                            <span className="text-white/40 uppercase tracking-widest">Required Units ({deg.mcs.length})</span>
+                                                            <span className="text-gold font-bold">{deg.ects} ECTS Total</span>
+                                                        </div>
+                                                        
+                                                        <div className="space-y-3">
+                                                            {deg.mcs.map((mc: string, idx: number) => (
+                                                                <div key={idx} className="flex items-center gap-4 py-3.5 px-4 bg-white/[0.03] border border-white/5 rounded-2xl transition-all hover:bg-white/[0.06] hover:border-white/10 group">
+                                                                    <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold font-mono text-white/30 group-hover:bg-gold group-hover:text-white group-hover:border-gold transition-all shrink-0">
+                                                                        {String(idx + 1).padStart(2, '0')}
+                                                                    </div>
+                                                                    <div className={`w-1 h-4 rounded-full ${group.id === 'Bachelor' ? 'bg-[#1E6B8C]' :
+                                                                            group.id === 'Master' ? 'bg-[#a02030]' :
+                                                                                group.id === 'Doctorate' ? 'bg-[#8a1a26]' :
+                                                                                    'bg-[#9B59B6]'
+                                                                        } opacity-30 group-hover:opacity-100`}></div>
+                                                                    <span className="text-[14px] text-white/80 group-hover:text-white leading-snug">{mc}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Modal Footer */}
+                                                    <div className="p-6 border-t border-white/10 bg-white/3 flex justify-center">
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); toggleDegree(deg.id); }}
+                                                            className="text-[11px] uppercase tracking-[2px] font-bold text-white/40 hover:text-gold transition-colors"
+                                                        >
+                                                            Close Syllabus
                                                         </button>
                                                     </div>
                                                 </div>
-                                                
-                                                <div className="mc-items-scroll max-h-[340px] overflow-y-auto pr-3 custom-scrollbar scroll-smooth">
-                                                    <div className="mc-items flex flex-col gap-2">
-                                                        {deg.mcs.map((mc: string, idx: number) => (
-                                                            <div key={idx} className="mc-item flex items-center gap-3 py-2.5 px-3.5 bg-white/[0.03] rounded-xl text-[12.5px] text-[#CBD5E1] border border-white/5 transition-all hover:bg-white/[0.06] hover:border-white/15 hover:text-white hover:translate-x-1 group cursor-default">
-                                                                <div className="mc-step flex items-center justify-center w-6 h-6 rounded-lg bg-white/5 border border-white/10 text-[10px] font-mono text-[#64748B] group-hover:bg-gold/20 group-hover:border-gold/30 group-hover:text-gold transition-all">
-                                                                    {String(idx + 1).padStart(2, '0')}
-                                                                </div>
-                                                                <div className={`mc-indicator w-1 h-3.5 rounded-full ${group.id === 'Bachelor' ? 'bg-[#1E6B8C]' :
-                                                                        group.id === 'Master' ? 'bg-[#a02030]' :
-                                                                            group.id === 'Doctorate' ? 'bg-[#8a1a26]' :
-                                                                                'bg-[#9B59B6]'
-                                                                    } opacity-30 group-hover:opacity-100 transition-opacity`}></div>
-                                                                <span className="flex-1 leading-tight">{mc}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="mt-4 pt-3 border-t border-white/5 flex justify-center">
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); toggleDegree(deg.id); }}
-                                                        className="text-[10px] uppercase tracking-[1px] font-bold text-[#64748B] hover:text-gold transition-colors"
-                                                    >
-                                                        Close Syllabus
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            </div>,
+                                            document.body
                                         )}
                                     </div>
                                 ))}
