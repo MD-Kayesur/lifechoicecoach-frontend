@@ -29,6 +29,7 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
     const [sessionId, setSessionId] = useState<string | number | null>(null);
     const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([]);
     const [inputValue, setInputValue] = useState('');
+    const [isPassed, setIsPassed] = useState(false);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
@@ -45,7 +46,7 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
                 competency_id: competency.id,
                 mc_access_id: microCredentialId,
             }).unwrap() as any;
-
+ 
             const sessionData = result.learning_session?.session || result.session;
             const sid = sessionData?.id || result.session_id || result.id || result.data?.session_id;
 
@@ -73,7 +74,7 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
                     // First hit with only token (empty message) to get the latest state/prompt
                     try {
                         const firstInteract = await interactSession({ sessionId: sid }).unwrap() as any;
-                        
+                     console.log("First Interact Result:", firstInteract);
                         // Open chat on any successful response
                         setHasStarted(true);
                         toast.success("Learning session started!");
@@ -98,6 +99,10 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
                                     content: aiContent
                                 }]);
                             }
+                        }
+
+                        if (firstInteract.remote_assessment_passed) {
+                            setIsPassed(true);
                         }
                     } catch (err) {
                         console.error("Initial interaction error:", err);
@@ -126,7 +131,7 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
                 sessionId,
                 message: userMsg
             }).unwrap() as any;
-
+           
             const aiContent = result.ai_response || 
                              result.message || 
                              result.response || 
@@ -140,6 +145,12 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
                     content: aiContent 
                 }]);
             }
+
+            if (result.remote_assessment_passed) {
+                setIsPassed(true);
+            }
+
+             console.log("Interact Result:", result);
         } catch (error: any) {
             toast.error("Failed to get AI response");
             console.error("Interaction error:", error);
@@ -268,30 +279,46 @@ export const LearningSessionModal = ({ isOpen, onClose, competency, microCredent
                         </div>
 
                         {/* Input Area */}
-                        <form 
-                            onSubmit={handleSendMessage}
-                            className="p-4 sm:p-6 bg-[#0d1726] border-t border-white/10"
-                        >
-                            <div className="relative group">
-                                <input 
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    placeholder="Type your question here..."
-                                    className="w-full bg-white/5 border border-white/10 focus:border-gold/50 rounded-2xl py-4 pl-5 pr-14 text-white placeholder:text-white/20 outline-none transition-all"
-                                />
+                        {!isPassed ? (
+                            <form 
+                                onSubmit={handleSendMessage}
+                                className="p-4 sm:p-6 bg-[#0d1726] border-t border-white/10"
+                            >
+                                <div className="relative group">
+                                    <input 
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        placeholder="Type your question here..."
+                                        className="w-full bg-white/5 border border-white/10 focus:border-gold/50 rounded-2xl py-4 pl-5 pr-14 text-white placeholder:text-white/20 outline-none transition-all"
+                                    />
+                                    <button 
+                                        type="submit"
+                                        disabled={!inputValue.trim() || isInteracting}
+                                        className="absolute right-2 top-2 bottom-2 w-10 bg-gold text-white rounded-xl flex items-center justify-center hover:bg-gold2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <Send size={18} />
+                                    </button>
+                                </div>
+                                <div className="mt-3 flex items-center justify-center gap-2">
+                                    <Sparkles size={12} className="text-gold/50" />
+                                    <span className="text-[10px] text-white/30 uppercase tracking-[1px] font-medium">AI-Powered Skill Coaching</span>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="p-4 sm:p-6 bg-[#0d1726] border-t border-white/10 flex flex-col items-center">
                                 <button 
-                                    type="submit"
-                                    disabled={!inputValue.trim() || isInteracting}
-                                    className="absolute right-2 top-2 bottom-2 w-10 bg-gold text-white rounded-xl flex items-center justify-center hover:bg-gold2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    onClick={onClose}
+                                    className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-3 text-[15px]"
                                 >
-                                    <Send size={18} />
+                                    <ShieldCheck size={20} />
+                                    Close Learning Session
                                 </button>
+                                <div className="mt-3 flex items-center justify-center gap-2">
+                                    <Sparkles size={12} className="text-gold/50" />
+                                    <span className="text-[10px] text-white/30 uppercase tracking-[1px] font-medium">Competency Achieved!</span>
+                                </div>
                             </div>
-                            <div className="mt-3 flex items-center justify-center gap-2">
-                                <Sparkles size={12} className="text-gold/50" />
-                                <span className="text-[10px] text-white/30 uppercase tracking-[1px] font-medium">AI-Powered Skill Coaching</span>
-                            </div>
-                        </form>
+                        )}
                     </div>
                 ) : (
                     // START SESSION VIEW
