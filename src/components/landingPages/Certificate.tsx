@@ -40,6 +40,12 @@ export const Certificate = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+    
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const id = searchParams.get("id");
      
     // Fetch User Profile
@@ -229,20 +235,24 @@ export const Certificate = () => {
                                 </div>
 
                                 {/* QR Code Container */}
-                                <div className="absolute top-[49.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5vw] lg:p-[4px] shadow-sm pointer-events-auto">
-                                    <div className="  max-w-[15vw]  max-h-[15vw]  lg:max-w-[10vw] lg:max-h-[10vw]">
-                                        <QRCodeSVG 
-                                            value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''} 
-                                            size={1000}
-                                            style={{ width: '100%', height: '100%' }}
-                                            level="H"
-                                            includeMargin={false}
-                                        />
+                                <div className="absolute top-[49.5%] left-[50%] -translate-x-1/2 -translate-y-1/2 bg-white p-[0.5%] shadow-sm pointer-events-auto w-[34%] lg:w-[18%] aspect-square overflow-hidden flex items-center justify-center">
+                                    <div className="w-full h-full">
+                                        {isMounted ? (
+                                            <QRCodeSVG 
+                                                value={certData?.certificate_file || (typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number}` : '')} 
+                                                size={1000}
+                                                style={{ width: '100%', height: '100%' }}
+                                                level="H"
+                                                includeMargin={false}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-white" />
+                                        )}
                                     </div>
                                     <div style={{ display: 'none' }}>
                                         <QRCodeCanvas
                                             id="qr-code-canvas-sample"
-                                            value={typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number || id}` : ''}
+                                            value={certData?.certificate_file || (typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate/${certData.certificate_number}` : '')}
                                             size={500}
                                             level="H"
                                         />
