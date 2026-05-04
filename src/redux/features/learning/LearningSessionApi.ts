@@ -45,6 +45,9 @@ export interface CompetencyRoadmapItem {
     attempts_used: number;
     total_interactions: number;
     total_points: number;
+    current_session_id: number | null;
+    current_attempt: number | null;
+    current_interaction_count: number | null;
 }
 
 export interface GetCompetencyRoadmapResponse {
